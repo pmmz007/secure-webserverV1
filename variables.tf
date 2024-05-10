@@ -79,3 +79,66 @@ variable "subnet_prefixes" {
   default = [ "172.16.1.0/24",
   "172.16.2.0/24" ]
 }
+
+// Virtual Machine
+// Network Interface
+variable "vm_nic_name" {
+  type = string
+  description = "define network interface name"
+  default = "secure-web-nic"
+}
+
+variable "internal_nic_name" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "webserver-internal"
+}
+
+variable "private_ip_address_allocation" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "Dynamic"
+}
+
+// Network Security Group
+
+variable "webserver_nsg_name" {
+  type = string
+  description = "define name of network security group for web server"
+  default = "webserverNSG"
+}
+
+variable "nsg_rule_name" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "allowssh"
+}
+
+variable "rule_priority" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "100"
+}
+
+variable "direction" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "Inbound"
+}
+
+variable "access" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "Allow"
+}
+
+variable "protocol" {
+  type = string
+  description = "(optional) describe your variable"
+  default = "Tcp"
+}
+
+
+
+
+

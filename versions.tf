@@ -15,6 +15,6 @@ provider "azurerm" {
   client_secret   = var.client_secret
   tenant_id       = var.tenant_id
   subscription_id = var.subscription_id
-  use_cli         = false
+  # use_cli         = false
 }
 
