@@ -96,7 +96,7 @@ resource "azurerm_linux_virtual_machine" "lab" {
 
   admin_ssh_key {
     username   = var.admin_username
-    public_key = file("~/.ssh/id_rsa.pub")
+    public_key = file("./id_rsa.pub")
   }
 
   os_disk {
@@ -111,7 +111,13 @@ resource "azurerm_linux_virtual_machine" "lab" {
     version   = var.os_version
   }
   custom_data = base64encode(templatefile("${path.module}/user_data.sh", {}))
-
+  // attached user-assign managed identity
+  identity {
+    type = "UserAssigned"
+    identity_ids = [data.azurerm_user_assigned_identity.lab.id]
+    
+  }
+  depends_on = [ data.azurerm_user_assigned_identity.lab ]
 }
 
 // Storage Account
@@ -122,10 +128,18 @@ resource "azurerm_storage_account" "lab" {
   location                 = azurerm_resource_group.lab.location
   account_tier             = var.account_tier
   account_replication_type = var.account_replication_type
+  identity {
+    type = "UserAssigned"
+    identity_ids = [data.azurerm_user_assigned_identity.lab.id]
+  }
+  depends_on = [ azurerm_user_assigned_identity.lab ]
   tags = {
     environment = var.environment
   }
 }
+
+// Role Assignment
+
 
 // Storage Container
 resource "azurerm_storage_container" "lab" {
@@ -143,20 +157,46 @@ resource "azurerm_storage_blob" "lab" {
   source                 = "index.html"
 }
 
-// Custom Role Blob Read/Write
-resource "azurerm_role_definition" "vnet_peering" {
-  name  = var.custom_blob_role_name
-  scope = "/subscriptions/9ea6c168-cf8c-47a6-a689-a7c35990bf7f"
-  permissions {
-    actions = ["Microsoft.Storage/storageAccounts/blobServices/containers/write",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/delete",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/read",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/lease/action",
-      "Microsoft.Storage/storageAccounts/blobServices/containers/clearLegalHold/action",
-    "Microsoft.Storage/storageAccounts/blobServices/containers/setLegalHold/action"]
-    not_actions = []
-  }
-  assignable_scopes = var.assignable_scopes
+// Create User Assign Managed Identity
+
+resource "azurerm_user_assigned_identity" "lab" {
+  location            = azurerm_resource_group.lab.location
+  name                = var.lab_uami
+  resource_group_name = azurerm_resource_group.lab.name
 }
 
-// Role Assignment
+// Getting ID of this managed identity
+data "azurerm_user_assigned_identity" "lab" {
+  name                = azurerm_user_assigned_identity.lab.name
+  resource_group_name = azurerm_resource_group.lab.name
+}
+
+
+# output "uai_client_id" {
+#   value = data.azurerm_user_assigned_identity.lab.client_id
+# }
+
+# output "uai_principal_id" {
+#   value = data.azurerm_user_assigned_identity.lab.principal_id
+# }
+
+# output "uai_id" {
+#   value = data.azurerm_user_assigned_identity.lab.id
+# }
+
+data "azurerm_role_definition" "builtin" {
+  name = "Storage Account Contributor"
+}
+
+# output "role_permission_test" {
+#   value = data.azurerm_role_definition.builtin.role_definition_id
+  
+# }
+
+resource "azurerm_role_assignment" "lab" {
+  name               = "f227852f-8961-4dc6-934b-155710b850e3" # this is manual generated from UUID/GUID Generator website
+  scope              = azurerm_storage_account.lab.id
+  # delegated_managed_identity_resource_id = azurerm_storage_account.lab.id
+  role_definition_id = data.azurerm_role_definition.builtin.role_definition_id
+  principal_id       = azurerm_user_assigned_identity.lab.principal_id
+}

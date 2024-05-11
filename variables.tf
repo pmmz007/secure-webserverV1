@@ -253,14 +253,12 @@ variable "custom_blob_role_name" {
   default = "Cblob-pmmz"
 }
 
-# variable "scope" {
-#   type = string
-#   description = "(optional) describe your variable"
-#   default = "9ea6c168-cf8c-47a6-a689-a7c35990bf7f"
-# }
-
-variable "assignable_scopes" {
-  type = list(string)
+variable "lab_uami" {
+  type = string
   description = "(optional) describe your variable"
-  default = [ "/subscriptions/9ea6c168-cf8c-47a6-a689-a7c35990bf7f/resourceGroups/WebserverRG" ]
+  default = "tostorageuami"
 }
+
+
+
+
