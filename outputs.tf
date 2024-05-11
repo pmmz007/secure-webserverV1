@@ -21,3 +21,8 @@ output "network_prefixes_of_vnet" {
 output "web-subnet-name_id" {
     value = module.secure-web-vnet.vnet_subnets[0]
 }
+
+// virtual machine
+output "public_ip_of_webserver" {
+    value = azurerm_public_ip.lab.ip_address
+}
