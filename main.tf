@@ -138,9 +138,6 @@ resource "azurerm_storage_account" "lab" {
   }
 }
 
-// Role Assignment
-
-
 // Storage Container
 resource "azurerm_storage_container" "lab" {
   name                  = var.storage_container_name
